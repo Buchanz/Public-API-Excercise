@@ -27,6 +27,19 @@ function EncounterCard({ pokemon, loading, error, onContinue, onRetry, onCatch }
     return () => window.clearTimeout(timer)
   }, [pokemon?.id])
 
+  useEffect(() => {
+    if (catchState !== 'caught') return
+    let finishTimer
+    const exitTimer = window.setTimeout(() => {
+      setLeaving(true)
+      finishTimer = window.setTimeout(onContinue, 900)
+    }, 2800)
+    return () => {
+      window.clearTimeout(exitTimer)
+      window.clearTimeout(finishTimer)
+    }
+  }, [catchState])
+
   function playPokemonCry(volume = .38) {
     if (!pokemon?.cry) return
     const cry = new Audio(pokemon.cry)
