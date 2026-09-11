@@ -111,8 +111,10 @@ function EncounterCard({ pokemon, loading, error, onContinue, onRetry, onCatch }
     window.setTimeout(onContinue, 900)
   }
 
-  const encounterSize = pokemon ? Math.min(47, Math.max(27, 24 + Math.sqrt(pokemon.height) * 7)) : 31
-  const pokemonPosition = { width: `${encounterSize}%`, height: `${encounterSize}%`, right: `${24 - encounterSize / 2}%` }
+  const heightScale = pokemon ? Math.log1p(pokemon.height) / Math.log1p(9) : 0
+  const weightScale = pokemon ? Math.log1p(pokemon.weight) / Math.log1p(500) : 0
+  const encounterSize = pokemon ? Math.min(56, Math.max(30, 28 + heightScale * 18 + weightScale * 9)) : 32
+  const pokemonPosition = { width: `${encounterSize}%`, height: `${encounterSize}%`, right: `${24 - encounterSize / 2}%`, top: `${43 - encounterSize / 2}%` }
 
   return <div className={`battle-scene ${leaving ? 'leaving' : ''}`} role="dialog" aria-modal="true">
     <div className="battle-exit-wipe" aria-hidden="true"/>

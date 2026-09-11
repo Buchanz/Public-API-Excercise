@@ -869,3 +869,6 @@ html, body, #root { width: 100%; height: 100%; overflow: hidden; }
 .dex-preview.unknown img:hover {
   filter: grayscale(1) brightness(.42) contrast(.92) drop-shadow(0 4px 3px #4d5651) !important;
 }
+
+/* Allow Pokédex height/weight scaling to give large species proper presence. */
+.pokemon-reveal > img { max-width: 56%; max-height: 56%; }
