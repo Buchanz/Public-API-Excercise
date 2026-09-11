@@ -27,11 +27,42 @@ function EncounterCard({ pokemon, loading, error, onContinue, onRetry, onCatch }
     return () => window.clearTimeout(timer)
   }, [pokemon?.id])
 
+  function playPokemonCry(volume = .38) {
+    if (!pokemon?.cry) return
+    const cry = new Audio(pokemon.cry)
+    cry.volume = volume
+    cry.play().catch(() => {})
+  }
+
+  function playBallSound(kind) {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext
+      const context = new AudioContext()
+      const oscillator = context.createOscillator()
+      const gain = context.createGain()
+      const start = context.currentTime
+      oscillator.type = kind === 'throw' ? 'sawtooth' : 'square'
+      oscillator.frequency.setValueAtTime(kind === 'throw' ? 620 : 185, start)
+      oscillator.frequency.exponentialRampToValueAtTime(kind === 'throw' ? 125 : 115, start + (kind === 'throw' ? .34 : .09))
+      gain.gain.setValueAtTime(kind === 'throw' ? .045 : .055, start)
+      gain.gain.exponentialRampToValueAtTime(.001, start + (kind === 'throw' ? .36 : .11))
+      oscillator.connect(gain).connect(context.destination)
+      oscillator.start(start)
+      oscillator.stop(start + (kind === 'throw' ? .37 : .12))
+      window.setTimeout(() => context.close(), 500)
+    } catch { /* Capture remains playable if audio is unavailable. */ }
+  }
+
   function throwBall() {
     if (!pokemon || catchState !== 'bag') return
     const caught = Math.random() < Math.max(0.35, 0.82 - pokemon.level / 100)
     setCatchState('throwing')
-    window.setTimeout(() => setCatchState('shaking'), 850)
+    playBallSound('throw')
+    window.setTimeout(() => {
+      setCatchState('shaking')
+      playBallSound('wiggle')
+    }, 850)
+    ;[1330, 1810, 2290].forEach((delay) => window.setTimeout(() => playBallSound('wiggle'), delay))
     window.setTimeout(() => {
       if (caught) {
         setCatchState('caught')
@@ -39,6 +70,7 @@ function EncounterCard({ pokemon, loading, error, onContinue, onRetry, onCatch }
         playCatchChime()
       } else {
         setCatchState('escaped')
+        window.setTimeout(() => playPokemonCry(.42), 120)
       }
     }, 3000)
   }
