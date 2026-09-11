@@ -37,6 +37,10 @@ export function useGameAudio(mode, raining = false) {
     const celebrating = mode === 'victory'
     const notes = celebrating ? victoryMelody : battling ? battleMelody : forestNotes
     const tempo = celebrating ? 245 : battling ? 138 : 330
+    const mix = contextRef.current.createGain()
+    mix.gain.setValueAtTime(.001, contextRef.current.currentTime)
+    mix.gain.linearRampToValueAtTime(1, contextRef.current.currentTime + .7)
+    mix.connect(contextRef.current.destination)
 
     function playTone(frequency, type, volume, duration, delay = 0) {
       if (!frequency) return
@@ -48,7 +52,7 @@ export function useGameAudio(mode, raining = false) {
       oscillator.frequency.setValueAtTime(frequency, start)
       gain.gain.setValueAtTime(volume, start)
       gain.gain.exponentialRampToValueAtTime(.001, start + duration)
-      oscillator.connect(gain).connect(context.destination)
+      oscillator.connect(gain).connect(mix)
       oscillator.start(start)
       oscillator.stop(start + duration)
     }
@@ -77,7 +81,15 @@ export function useGameAudio(mode, raining = false) {
 
     playStep()
     timerRef.current = window.setInterval(playStep, tempo)
-    return () => window.clearInterval(timerRef.current)
+    return () => {
+      window.clearInterval(timerRef.current)
+      const context = contextRef.current
+      if (!context) return
+      mix.gain.cancelScheduledValues(context.currentTime)
+      mix.gain.setValueAtTime(Math.max(.001, mix.gain.value), context.currentTime)
+      mix.gain.linearRampToValueAtTime(.001, context.currentTime + .65)
+      window.setTimeout(() => mix.disconnect(), 700)
+    }
   }, [mode, muted, started])
 
   useEffect(() => {
