@@ -20,7 +20,7 @@ function GameMap({ player, direction, walking }) {
     const type = tree ? 'tree' : grass ? 'grass' : 'ground'
     const hasPlayer = player.x === x && player.y === y
     const flower = !tree && !grass && ((x === 6 && y === 3) || (x === 4 && y === 9) || (x === 10 && y === 8) || (x === 7 && y === 2) || (x === 11 && y === 9) || (x === 5 && y === 10))
-    return <div className={`tile ${type} ${hasPlayer ? 'occupied' : ''} ${hasPlayer && walking ? 'rustling' : ''}`} key={`${x}-${y}`}>
+    return <div className={`tile ${type} ${hasPlayer ? 'occupied' : ''} ${hasPlayer && walking ? 'rustling' : ''}`} key={`${x}-${y}`} style={{ '--tile-row': y }}>
       {tree && <span className="tree-top"/>}
       {grass && <span className="grass-blades">〽</span>}
       {flower && <span className="flower-mark">✿</span>}
@@ -30,6 +30,7 @@ function GameMap({ player, direction, walking }) {
   const playerStyle = {
     '--player-x': player.x,
     '--player-y': player.y,
+    '--player-row': player.y,
   }
 
   return <div className="map" role="img" aria-label="A forest route with patches of tall grass">
