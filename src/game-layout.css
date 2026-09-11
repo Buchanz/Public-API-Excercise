@@ -830,16 +830,25 @@ html, body, #root { width: 100%; height: 100%; overflow: hidden; }
 .dex-preview.preview-leaving strong,
 .dex-preview.preview-leaving small { opacity: 0; transform: translateY(4px); }
 @keyframes dex-preview-enter {
-  0% { opacity: 0; transform: scale(.62); filter: blur(5px) drop-shadow(0 4px 4px #2e443630); }
-  68% { opacity: 1; transform: scale(1.07); filter: blur(0) drop-shadow(0 12px 9px #2e44365e); }
-  100% { opacity: 1; transform: scale(1); filter: blur(0) drop-shadow(0 10px 8px #2e443654); }
+  0% { opacity: 0; transform: scale(.62); }
+  68% { opacity: 1; transform: scale(1.07); }
+  100% { opacity: 1; transform: scale(1); }
 }
 @keyframes dex-preview-exit {
-  from { opacity: 1; transform: scale(1); filter: blur(0); }
-  to { opacity: 0; transform: scale(.68); filter: blur(5px); }
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(.68); }
 }
 
 /* Balance the top-right sound control with the Menu button. */
 .top-actions .sound-key { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
 .top-actions .sound-label { font: .5rem 'Press Start 2P', monospace; }
 .top-actions .music-note { font: 1.15rem/1 'Press Start 2P', monospace; transform: translateY(-1px); }
+
+/* Uncaught Pokémon stay visibly greyed out instead of disappearing into black. */
+.dex-list .unseen img,
+.dex-list .unseen:hover img,
+.dex-preview.unknown img,
+.dex-preview.unknown img:hover {
+  opacity: .8;
+  filter: grayscale(1) brightness(.42) contrast(.92) drop-shadow(0 4px 3px #26382c66);
+}
