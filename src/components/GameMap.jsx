@@ -1,5 +1,9 @@
 const WIDTH = 15
 const HEIGHT = 15
+const FLOWERS = new Set([
+  '6-2', '8-2', '6-3', '7-4', '8-5', '4-9', '5-10', '7-9',
+  '9-8', '10-8', '11-9', '6-10', '7-11', '1-10', '13-9', '7-13',
+])
 
 export function isGrassTile(x, y) {
   return (x >= 1 && x <= 5 && y >= 2 && y <= 5) ||
@@ -19,7 +23,7 @@ function GameMap({ player, direction, walking }) {
     const tree = isTreeTile(x, y), grass = !tree && isGrassTile(x, y)
     const type = tree ? 'tree' : grass ? 'grass' : 'ground'
     const hasPlayer = player.x === x && player.y === y
-    const flower = !tree && !grass && ((x === 6 && y === 3) || (x === 4 && y === 9) || (x === 10 && y === 8) || (x === 7 && y === 2) || (x === 11 && y === 9) || (x === 5 && y === 10))
+    const flower = !tree && !grass && FLOWERS.has(`${x}-${y}`)
     return <div className={`tile ${type} ${hasPlayer ? 'occupied' : ''} ${hasPlayer && walking ? 'rustling' : ''}`} key={`${x}-${y}`} style={{ '--tile-row': y }}>
       {tree && <span className="tree-top"/>}
       {grass && <span className="grass-blades">〽</span>}
