@@ -129,7 +129,15 @@ function App() {
       <div className="game-area"><div className="map-title"><span>PokéAPI</span><strong>Wildwood Trail</strong></div><p className="route-label">Route 01 · Walk through tall grass</p>
         <div className="map-frame">
           <GameMap player={player} direction={direction} walking={walking}/>
-          {raining && <div className="rain-layer" aria-label="Rain shower"/>}
+          {raining && <div className="rain-layer" aria-label="Rain shower">
+            {Array.from({ length: 58 }, (_, index) => <i key={index} style={{
+              '--rain-x': `${(index * 37) % 103}%`,
+              '--rain-delay': `${-((index * 83) % 1700)}ms`,
+              '--rain-speed': `${620 + (index * 47) % 620}ms`,
+              '--rain-length': `${8 + (index * 13) % 17}px`,
+              '--rain-depth': `${.28 + ((index * 17) % 65) / 100}`,
+            }}/>) }
+          </div>}
           {phase === 'transition' && <div className="encounter-transition"><div className="encounter-flashes"/><div className="snake-wipe" aria-hidden="true">{Array.from({ length: 10 }, (_, index) => <span key={index}/>)}</div></div>}
         </div><p className="hint">Wild encounters use live PokéAPI data</p>
       </div>
