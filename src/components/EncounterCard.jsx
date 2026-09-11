@@ -73,9 +73,8 @@ function EncounterCard({ pokemon, loading, error, onContinue, onRetry, onCatch }
     playBallSound('throw')
     window.setTimeout(() => {
       setCatchState('shaking')
-      playBallSound('wiggle')
     }, 850)
-    ;[1330, 1810, 2290].forEach((delay) => window.setTimeout(() => playBallSound('wiggle'), delay))
+    ;[1330, 2290].forEach((delay) => window.setTimeout(() => playBallSound('wiggle'), delay))
     window.setTimeout(() => {
       if (caught) {
         setCatchState('caught')
