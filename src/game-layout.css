@@ -724,3 +724,19 @@ html, body, #root { width: 100%; height: 100%; overflow: hidden; }
   76% { transform: scale(1.1); filter: brightness(1); }
   100% { opacity: 1; transform: scale(1); filter: brightness(1); }
 }
+
+/* Mirrored corner controls: WASD left, arrow keys right. */
+.controls-panel.wasd-controls {
+  left: 18px;
+  right: auto;
+}
+.controls-panel.arrow-controls {
+  left: auto;
+  right: 18px;
+}
+.arrow-controls .d-pad button { font-size: 1.35rem; line-height: 1; }
+@media (max-width: 650px) {
+  .controls-panel.wasd-controls { left: 10px; right: auto; }
+  .controls-panel.arrow-controls { left: auto; right: 10px; }
+  .arrow-controls .d-pad button { font-size: 1rem; }
+}
