@@ -8,6 +8,8 @@ const battleMelody = [
   392, 440, 369.99, 329.63, 293.66, 329.63, 246.94, 293.66,
 ]
 const battleBass = [164.81, 164.81, 146.83, 146.83, 196, 196, 174.61, 146.83]
+const victoryMelody = [392, 493.88, 587.33, 783.99, 659.25, 587.33, 523.25, 659.25, 783.99, 987.77, 783.99, 659.25]
+const victoryBass = [196, 246.94, 261.63, 329.63, 293.66, 261.63]
 
 export function useGameAudio(mode, raining = false) {
   const contextRef = useRef(null)
@@ -32,8 +34,9 @@ export function useGameAudio(mode, raining = false) {
     if (!started || muted || !contextRef.current) return
     stepRef.current = 0
     const battling = mode === 'battle'
-    const notes = battling ? battleMelody : forestNotes
-    const tempo = battling ? 138 : 330
+    const celebrating = mode === 'victory'
+    const notes = celebrating ? victoryMelody : battling ? battleMelody : forestNotes
+    const tempo = celebrating ? 245 : battling ? 138 : 330
 
     function playTone(frequency, type, volume, duration, delay = 0) {
       if (!frequency) return
@@ -54,6 +57,12 @@ export function useGameAudio(mode, raining = false) {
       const context = contextRef.current
       if (!context || context.state !== 'running') return
       const step = stepRef.current++
+      if (celebrating) {
+        playTone(notes[step % notes.length], 'square', .017, .2)
+        if (step % 2 === 0) playTone(victoryBass[Math.floor(step / 2) % victoryBass.length], 'triangle', .019, .38)
+        if (step % 6 === 3) playTone(notes[step % notes.length] * 1.5, 'sine', .008, .28)
+        return
+      }
       if (!battling) {
         playTone(notes[step % notes.length], 'triangle', .017, tempo / 1100)
         return

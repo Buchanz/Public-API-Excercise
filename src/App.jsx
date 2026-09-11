@@ -17,8 +17,10 @@ function App() {
   const menuTimer = useRef(null)
   const [caught, setCaught] = useState(() => JSON.parse(localStorage.getItem('wildwood-caught') || '[]'))
   const [raining, setRaining] = useState(false)
+  const [victoryMusic, setVictoryMusic] = useState(false)
   const { pokemon, loading, error, encounter, clearEncounter, retry } = usePokemonEncounter()
-  const { startAudio, toggleMute, muted, started } = useGameAudio(phase === 'explore' ? 'forest' : 'battle', raining)
+  const musicMode = phase === 'explore' ? 'forest' : victoryMusic ? 'victory' : 'battle'
+  const { startAudio, toggleMute, muted, started } = useGameAudio(musicMode, raining)
 
   useEffect(() => {
     if (phase !== 'explore') { setRaining(false); return }
@@ -40,6 +42,7 @@ function App() {
   }, [phase])
 
   const beginEncounter = useCallback(() => {
+    setVictoryMusic(false)
     setPhase('transition')
     encounter()
   }, [encounter])
@@ -111,10 +114,12 @@ function App() {
 
   function continueExploring() {
     clearEncounter()
+    setVictoryMusic(false)
     setPhase('explore')
   }
 
   function catchPokemon(pokemon) {
+    setVictoryMusic(true)
     setCaught((current) => {
       if (current.some((item) => item.id === pokemon.id)) return current
       const next = [...current, pokemon]
