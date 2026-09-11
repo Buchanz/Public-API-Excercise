@@ -34,7 +34,7 @@ function App() {
           if (cancelled) return
           setRaining(false)
           scheduleShower()
-        }, 7000 + Math.random() * 7000)
+        }, 12000 + Math.random() * 8000)
       }, 5000 + Math.random() * 14000)
     }
     scheduleShower()
