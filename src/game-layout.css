@@ -663,3 +663,12 @@ html, body, #root { width: 100%; height: 100%; overflow: hidden; }
 /* Row-based depth: lower tree trunks cover a player walking behind them. */
 .tile.tree { z-index: calc(20 + var(--tile-row)); }
 .player { z-index: calc(20 + var(--player-row)); }
+
+/* Slightly moodier shower while preserving the existing natural drop motion. */
+.rain-layer { background: linear-gradient(180deg, #102f4526, #102b392e); }
+.rain-layer i {
+  opacity: calc(var(--rain-depth) + .18);
+  width: 1.5px;
+  background: linear-gradient(to bottom, transparent, #f4fcff 38%, #9edfff 100%);
+  box-shadow: 0 0 3px #d8f4ffaa;
+}
