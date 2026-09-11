@@ -828,3 +828,24 @@ html, body, #root { width: 100%; height: 100%; overflow: hidden; }
   .top-actions { top: 10px; right: 10px; gap: 6px; }
   .top-actions .menu-key, .top-actions .sound-key { min-width: 76px; min-height: 38px; padding: 8px; }
 }
+
+/* Smooth Rolodex selection and a two-part preview image puff. */
+.dex-list > button {
+  transition: width .42s cubic-bezier(.2, .75, .25, 1),
+    transform .42s cubic-bezier(.2, .75, .25, 1),
+    opacity .34s ease, filter .25s ease, background .3s ease;
+}
+.dex-preview img { animation: dex-preview-enter .38s cubic-bezier(.18, 1.25, .38, 1) both; }
+.dex-preview.preview-leaving img { animation: dex-preview-exit .22s ease-in both; }
+.dex-preview strong, .dex-preview small { transition: opacity .18s ease, transform .18s ease; }
+.dex-preview.preview-leaving strong,
+.dex-preview.preview-leaving small { opacity: 0; transform: translateY(4px); }
+@keyframes dex-preview-enter {
+  0% { opacity: 0; transform: scale(.62); filter: blur(5px) drop-shadow(0 4px 4px #2e443630); }
+  68% { opacity: 1; transform: scale(1.07); filter: blur(0) drop-shadow(0 12px 9px #2e44365e); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0) drop-shadow(0 10px 8px #2e443654); }
+}
+@keyframes dex-preview-exit {
+  from { opacity: 1; transform: scale(1); filter: blur(0); }
+  to { opacity: 0; transform: scale(.68); filter: blur(5px); }
+}
