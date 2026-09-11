@@ -838,3 +838,8 @@ html, body, #root { width: 100%; height: 100%; overflow: hidden; }
   from { opacity: 1; transform: scale(1); filter: blur(0); }
   to { opacity: 0; transform: scale(.68); filter: blur(5px); }
 }
+
+/* Balance the top-right sound control with the Menu button. */
+.top-actions .sound-key { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+.top-actions .sound-label { font: .5rem 'Press Start 2P', monospace; }
+.top-actions .music-note { font: 1.15rem/1 'Press Start 2P', monospace; transform: translateY(-1px); }
