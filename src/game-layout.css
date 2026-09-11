@@ -856,3 +856,16 @@ html, body, #root { width: 100%; height: 100%; overflow: hidden; }
 /* Finer row outlines keep the curved top and bottom from looking too heavy. */
 .dex-list > button { border-width: 2px; }
 .dex-list > button.selected { outline-width: 3px; }
+
+/* Never reveal uncaught artwork colors during hover/filter interpolation. */
+.dex-list > button.unseen img,
+.dex-list > button.unseen:hover img,
+.dex-list > button.unseen.selected img {
+  opacity: .8;
+  filter: grayscale(1) brightness(.42) contrast(.92) drop-shadow(0 4px 3px #4d5651) !important;
+  transition: transform .2s ease, opacity .2s ease;
+}
+.dex-preview.unknown img,
+.dex-preview.unknown img:hover {
+  filter: grayscale(1) brightness(.42) contrast(.92) drop-shadow(0 4px 3px #4d5651) !important;
+}
