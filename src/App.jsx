@@ -8,6 +8,7 @@ import { useGameAudio } from './hooks/useGameAudio.js'
 function App() {
   const [player, setPlayer] = useState({ x: 11, y: 10 })
   const [direction, setDirection] = useState('down')
+  const directionRef = useRef('down')
   const [walking, setWalking] = useState(false)
   const walkTimer = useRef(null)
   const [steps, setSteps] = useState(0)
@@ -56,7 +57,9 @@ function App() {
   const move = useCallback((dx, dy) => {
     if (phase !== 'explore' || menuOpen) return
     startAudio()
-    setDirection(dx < 0 ? 'left' : dx > 0 ? 'right' : dy < 0 ? 'up' : 'down')
+    const nextDirection = dx < 0 ? 'left' : dx > 0 ? 'right' : dy < 0 ? 'up' : 'down'
+    directionRef.current = nextDirection
+    setDirection(nextDirection)
     setWalking(true)
     window.clearTimeout(walkTimer.current)
     walkTimer.current = window.setTimeout(() => setWalking(false), 190)
@@ -69,6 +72,19 @@ function App() {
       return next
     })
   }, [beginEncounter, menuOpen, phase, startAudio])
+
+  const faceOrMove = useCallback((nextDirection, dx, dy) => {
+    if (phase !== 'explore' || menuOpen) return
+    startAudio()
+    if (directionRef.current !== nextDirection) {
+      directionRef.current = nextDirection
+      setDirection(nextDirection)
+      setWalking(false)
+      window.clearTimeout(walkTimer.current)
+      return
+    }
+    move(dx, dy)
+  }, [menuOpen, move, phase, startAudio])
 
   const closeMenu = useCallback(() => {
     if (!menuOpen || menuClosing) return
@@ -97,15 +113,15 @@ function App() {
         return
       }
       if (event.key === 'Escape' && menuOpen) { closeMenu(); return }
-      const moves = { w: [0, -1], arrowup: [0, -1], s: [0, 1], arrowdown: [0, 1], a: [-1, 0], arrowleft: [-1, 0], d: [1, 0], arrowright: [1, 0] }
-      const direction = moves[event.key.toLowerCase()]
-      if (!direction) return
+      const moves = { w: ['up', 0, -1], arrowup: ['up', 0, -1], s: ['down', 0, 1], arrowdown: ['down', 0, 1], a: ['left', -1, 0], arrowleft: ['left', -1, 0], d: ['right', 1, 0], arrowright: ['right', 1, 0] }
+      const nextMove = moves[event.key.toLowerCase()]
+      if (!nextMove) return
       event.preventDefault()
-      move(...direction)
+      faceOrMove(...nextMove)
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [closeMenu, menuOpen, move, phase, toggleMenu])
+  }, [closeMenu, faceOrMove, menuOpen, phase, toggleMenu])
 
   useEffect(() => () => {
     window.clearTimeout(walkTimer.current)
@@ -130,8 +146,8 @@ function App() {
 
   return <main className="game-page">
     <section className={`game-console ${phase === 'transition' ? 'is-transitioning' : ''}`}>
-      <aside className="controls-panel wasd-controls"><div className="control-group"><p>Move · WASD</p><div className="d-pad"><span/><button onClick={() => move(0, -1)}>W</button><span/><button onClick={() => move(-1, 0)}>A</button><button onClick={() => move(0, 1)}>S</button><button onClick={() => move(1, 0)}>D</button></div><small>Keyboard controls</small></div></aside>
-      <aside className="controls-panel arrow-controls"><div className="control-group"><p>Move · Arrows</p><div className="d-pad"><span/><button aria-label="Move up" onClick={() => move(0, -1)}><i className="arrow-icon up"/></button><span/><button aria-label="Move left" onClick={() => move(-1, 0)}><i className="arrow-icon left"/></button><button aria-label="Move down" onClick={() => move(0, 1)}><i className="arrow-icon down"/></button><button aria-label="Move right" onClick={() => move(1, 0)}><i className="arrow-icon right"/></button></div><small>Arrow keys</small></div></aside>
+      <aside className="controls-panel wasd-controls"><div className="control-group"><p>Move · WASD</p><div className="d-pad"><span/><button onClick={() => faceOrMove('up', 0, -1)}>W</button><span/><button onClick={() => faceOrMove('left', -1, 0)}>A</button><button onClick={() => faceOrMove('down', 0, 1)}>S</button><button onClick={() => faceOrMove('right', 1, 0)}>D</button></div><small>Keyboard controls</small></div></aside>
+      <aside className="controls-panel arrow-controls"><div className="control-group"><p>Move · Arrows</p><div className="d-pad"><span/><button aria-label="Move up" onClick={() => faceOrMove('up', 0, -1)}><i className="arrow-icon up"/></button><span/><button aria-label="Move left" onClick={() => faceOrMove('left', -1, 0)}><i className="arrow-icon left"/></button><button aria-label="Move down" onClick={() => faceOrMove('down', 0, 1)}><i className="arrow-icon down"/></button><button aria-label="Move right" onClick={() => faceOrMove('right', 1, 0)}><i className="arrow-icon right"/></button></div><small>Arrow keys</small></div></aside>
       <div className="top-actions"><button className="menu-key" onClick={() => setMenuOpen(true)}>E <span>Menu</span></button><button className="sound-key" onClick={toggleMute}><span className="music-note">♪</span><span className="sound-label">{started && !muted ? 'On' : 'Off'}</span></button></div>
       <div className="game-area"><div className="map-title"><span>PokéAPI</span><strong>Wildwood Trail</strong></div><p className="route-label">Route 01 · Walk through tall grass</p>
         <div className="map-frame">
