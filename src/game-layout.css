@@ -740,3 +740,68 @@ html, body, #root { width: 100%; height: 100%; overflow: hidden; }
   .controls-panel.arrow-controls { left: auto; right: 10px; }
   .arrow-controls .d-pad button { font-size: 1rem; }
 }
+
+/* Identical vector arrows in all four directions. */
+.arrow-controls .d-pad button { display: grid; place-items: center; }
+.arrow-icon {
+  display: block;
+  width: 24px;
+  height: 18px;
+  background: #233d2f;
+  clip-path: polygon(0 35%, 58% 35%, 58% 0, 100% 50%, 58% 100%, 58% 65%, 0 65%);
+  transform-origin: center;
+}
+.arrow-icon.up { transform: rotate(-90deg); }
+.arrow-icon.down { transform: rotate(90deg); }
+.arrow-icon.left { transform: rotate(180deg); }
+
+/* Emerald-style wild Pokémon status card. */
+.wild-copy {
+  left: 3%;
+  top: 5%;
+  width: min(43%, 470px);
+  padding: 15px 48px 17px 20px;
+  border: 4px solid #52625d;
+  border-radius: 3px;
+  background: linear-gradient(#f4f2e8, #d8ddd8);
+  box-shadow: 7px 8px 0 #60716b99;
+  clip-path: polygon(0 0, 91% 0, 100% 100%, 0 100%);
+}
+.wild-copy .name-level { justify-content: flex-start; gap: 10px; }
+.wild-copy .name-level h2 {
+  flex: 1;
+  color: #454747;
+  font-size: clamp(.82rem, 1.8vw, 1.25rem);
+  letter-spacing: -.05em;
+}
+.wild-copy .name-level strong { color: #454747; font-size: clamp(.55rem, 1.1vw, .78rem); }
+.wild-copy .gender { font-size: clamp(1rem, 1.8vw, 1.35rem); }
+.wild-copy .type-row { margin: 8px 0 0; }
+.wild-copy .hp-row { grid-template-columns: 38px minmax(105px, 1fr); margin: 12px 7% 0 22%; gap: 7px; }
+.wild-copy .hp-row b { color: #dd9b18; font-size: clamp(.55rem, 1vw, .75rem); text-shadow: 1px 1px #5b4931; }
+.wild-copy .hp-row > span { height: 15px; padding: 2px; border: 4px solid #46544e; border-radius: 9px; background: #26332f; }
+.wild-copy .hp-row i { background: #20bd28; box-shadow: inset 0 -2px #108e19; }
+.wild-copy::after {
+  content: '';
+  position: absolute;
+  left: 17px;
+  bottom: 13px;
+  width: 17px;
+  height: 17px;
+  border: 3px solid #39443f;
+  border-radius: 50%;
+  background: linear-gradient(#db4547 0 43%, #39443f 44% 57%, #f7f3e8 58%);
+}
+.mini-ball { position: relative; border-radius: 50%; overflow: visible; }
+.mini-ball::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border: 2px solid #263e31;
+  border-radius: 50%;
+  background: white;
+  transform: translate(-50%, -50%);
+}
