@@ -1,0 +1,615 @@
+html, body, #root { width: 100%; height: 100%; overflow: hidden; }
+.game-page { height: 100dvh; min-height: 0; padding: 12px max(2vw, 10px); overflow: hidden; display: flex; flex-direction: column; }
+.game-page > header { width: min(100%, 900px); height: 64px; flex: 0 0 64px; margin: 0 auto 8px; }
+.game-page > header .eyebrow { margin-bottom: 3px; }
+.game-page > header h1 { font-size: clamp(1rem, 2.6vw, 1.65rem); }
+.step-counter { width: 54px; height: 54px; box-shadow: 0 3px 0 #172f23; }
+.game-console { width: min(100%, 920px); height: calc(100dvh - 96px); min-height: 0; margin: 0 auto; padding: 14px; display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 14px; align-items: center; border-radius: 20px; box-shadow: 7px 7px 0 #bfb49a; }
+.game-area { height: 100%; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.route-label { flex: 0 0 auto; margin: 0 0 7px; font-size: .66rem; }
+.hint { flex: 0 0 auto; margin: 7px 0 0; font-size: .57rem; }
+.map-frame { width: min(100%, calc(100dvh - 146px)); max-height: calc(100dvh - 146px); aspect-ratio: 1; }
+.controls-panel { align-self: stretch; display: flex; flex-direction: column; justify-content: center; align-items: center; border-right: 2px dashed #cfc7b2; padding-right: 14px; text-align: center; }
+.controls-panel > p { font: .65rem 'Press Start 2P'; text-transform: uppercase; color: #244b36; margin: 0 0 17px; }
+.controls-panel > small { font-size: .63rem; line-height: 1.6; color: #778079; margin-top: 15px; }
+.d-pad { display: grid; grid-template-columns: repeat(3, 30px); gap: 4px; }
+.d-pad button { width: 30px; height: 30px; padding: 0; border: 2px solid #233d2f; border-radius: 6px; background: #f2c94c; color: #233d2f; font: .57rem 'Press Start 2P'; box-shadow: 0 3px 0 #233d2f; cursor: pointer; }
+.d-pad button:active { transform: translateY(2px); box-shadow: 0 1px 0 #233d2f; }
+.player, .player::before { all: unset; }
+.player { position: absolute; inset: -16%; z-index: 5; display: block; background-image: url('./assets/player-sprites.png'); background-repeat: no-repeat; background-size: 400% 400%; image-rendering: pixelated; filter: drop-shadow(0 2px 0 #20342888); }
+.player.down { background-position-y: 0%; }
+.player.right { background-position-y: 66.666%; }
+.player.left { background-position-y: 33.333%; }
+.player.up { background-position-y: 100%; }
+.player.walking { animation: sprite-walk .38s steps(3) infinite; }
+@keyframes sprite-walk { from { background-position-x: 0%; } to { background-position-x: 100%; } }
+.tree-top { width: 112%; height: 132%; z-index: 2; border-radius: 0; background-color: transparent; background-image: url('./assets/tree-sprites.png'); background-repeat: no-repeat; background-size: 420% 300%; background-position: left top; box-shadow: none; image-rendering: pixelated; filter: drop-shadow(0 3px 0 #173b2a66); transform: translateY(-10%); }
+@media (max-width: 600px) {
+  .game-console { grid-template-columns: 78px minmax(0, 1fr); gap: 8px; padding: 8px; }
+  .controls-panel { padding-right: 8px; }
+  .d-pad { grid-template-columns: repeat(3, 23px); gap: 2px; }
+  .d-pad button { width: 23px; height: 26px; font-size: .45rem; }
+  .controls-panel > small { display: none; }
+  .map-frame { width: min(100%, calc(100dvh - 140px)); max-height: calc(100dvh - 140px); }
+}
+@media (max-height: 650px) {
+  .game-page > header { height: 45px; flex-basis: 45px; }
+  .eyebrow { display: none; }
+  .step-counter { width: 42px; height: 42px; }
+  .game-console { height: calc(100dvh - 67px); }
+  .map-frame { width: min(100%, calc(100dvh - 112px)); max-height: calc(100dvh - 112px); }
+}
+
+.battle-scene { background: url('./assets/battle-field.png') center / cover no-repeat; }
+.battle-sky, .battle-ground { display: none; }
+.trainer-battle-sprite { position: absolute; z-index: 2; left: 4%; bottom: 14%; width: 32%; height: 47%; object-fit: contain; object-position: center bottom; image-rendering: pixelated; filter: drop-shadow(0 7px 3px #24452b55); animation: trainer-slide .65s .12s cubic-bezier(.2, 1.2, .5, 1) both; }
+.pokemon-reveal > img { z-index: 2; width: 35%; height: 35%; right: 11%; top: 24%; }
+.wild-copy { z-index: 4; top: 7%; padding: 9px 12px; border-radius: 8px; background: #fffdf3df; box-shadow: 3px 3px 0 #244b3670; }
+.battle-dialog { z-index: 5; }
+@keyframes trainer-slide { from { transform: translateX(-120%) scale(.75); } to { transform: none; } }
+
+/* Full-viewport route and layered environment art */
+.game-page { padding: 0; background: #1a3427; }
+.game-page > header { display: none; }
+.game-console { width: 100vw; height: 100dvh; max-width: none; padding: 8px 12px 8px 92px; display: block; border: 0; border-radius: 0; box-shadow: none; background: #1a3427; }
+.game-area { width: 100%; height: 100%; }
+.map-frame { width: min(calc(100vw - 116px), calc(100dvh - 34px)); max-height: calc(100dvh - 34px); border-width: 6px; box-shadow: 0 0 0 4px #9bb368; }
+.route-label { height: 18px; margin: 0; color: #e9efd8; }
+.hint { height: 16px; margin: 4px 0 0; color: #b9c8b4; }
+.controls-panel { position: fixed; z-index: 30; left: 0; top: 0; bottom: 0; width: 80px; padding: 0; border: 0; border-right: 2px solid #335743; background: #11271c; color: white; }
+.controls-panel > p { color: #f2c94c; }
+.controls-panel > small { color: #afc2b5; }
+.tile.ground { background-color: #9ac85d; background-image: radial-gradient(circle at 18% 22%, #b5da70 0 4%, transparent 5%), radial-gradient(circle at 74% 68%, #77aa4e 0 3%, transparent 4%), linear-gradient(135deg, transparent 45%, #91be57 46% 53%, transparent 54%); }
+.tile.ground:nth-child(3n) { background-color: #9dcc61; }
+.tile.grass { background-color: #3e7f3e; background-image: url('./assets/tall-grass.png'); background-size: 150% 150%; background-position: center; border-color: #2e6b37; }
+.grass-blades { display: none; }
+.grass-foreground { position: absolute; z-index: 7; left: -3%; right: -3%; bottom: -3%; height: 47%; background: url('./assets/tall-grass.png') center bottom / 155% 310%; image-rendering: pixelated; pointer-events: none; filter: brightness(.94); }
+.tree-top { width: 100%; height: 122%; background-size: 460% 300%; background-position: left top; transform: translateY(-8%); }
+.flower-mark { z-index: 2; width: 55%; height: 55%; display: grid; place-items: center; border-radius: 50%; color: #fff7a6; font-size: clamp(.45rem, 1.25vw, .85rem); text-shadow: 2px 0 #dc6d72, -2px 0 #dc6d72, 0 2px #dc6d72, 0 -2px #dc6d72; }
+.tile:nth-child(4n) .flower-mark { color: #dbe7ff; text-shadow: 2px 0 #7e78c9, -2px 0 #7e78c9, 0 2px #7e78c9, 0 -2px #7e78c9; }
+@media (max-width: 600px) { .game-console { padding-left: 70px; } .controls-panel { width: 62px; } .map-frame { width: min(calc(100vw - 84px), calc(100dvh - 34px)); } }
+
+/* Roomier side rail and larger play field */
+.game-console { padding: 6px 8px 6px 142px; }
+.controls-panel { width: 132px; padding: 20px 13px; justify-content: space-between; overflow: hidden; }
+.side-title { width: 100%; color: white; text-align: left; }
+.side-title span { display: block; margin-bottom: 9px; color: #f2c94c; font-size: .57rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.side-title strong { font: .7rem/1.65 'Press Start 2P'; }
+.control-group { width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 9vh; }
+.control-group > p { margin: 0 0 15px; color: #f2c94c; font: .58rem 'Press Start 2P'; text-transform: uppercase; }
+.control-group > small { margin-top: 14px; color: #afc2b5; font-size: .58rem; line-height: 1.4; text-align: center; }
+.map-frame { width: min(calc(100vw - 158px), calc(100dvh - 20px)); max-height: calc(100dvh - 20px); }
+.route-label { position: absolute; z-index: 8; top: 13px; padding: 5px 10px; border-radius: 5px; background: #163525c9; color: white; height: auto; }
+.hint { position: absolute; z-index: 8; bottom: 13px; padding: 4px 8px; border-radius: 5px; background: #163525b8; color: white; height: auto; }
+.game-area { position: relative; }
+
+/* Consistent trees and richer ground */
+.tree-top { width: 100%; height: auto; aspect-ratio: 5 / 6; transform: none; align-self: center; }
+.tile.tree { overflow: visible; }
+.tile.ground { background-color: #92c25a; background-image: radial-gradient(ellipse at 20% 30%, #b2d66b 0 5%, transparent 6%), radial-gradient(ellipse at 77% 73%, #729f48 0 4%, transparent 5%), radial-gradient(ellipse at 57% 15%, #a6cf64 0 3%, transparent 4%), repeating-linear-gradient(105deg, transparent 0 10px, #86b45255 11px 13px, transparent 14px 20px); box-shadow: inset 0 0 5px #5f8d3b38; }
+.tile.ground:nth-child(3n) { background-color: #9ac85d; transform: none; }
+
+/* Each grass square sways independently and rustles around the player */
+.tile.grass { overflow: visible; background: #39763a; }
+.tile.grass::before { content: ''; position: absolute; z-index: 1; inset: -4% -3% 0; background: url('./assets/tall-grass.png') center bottom / cover no-repeat; image-rendering: pixelated; transform-origin: 50% 100%; animation: grass-wind 2.8s ease-in-out infinite alternate; }
+.tile.grass:nth-child(3n)::before { animation-delay: -.7s; animation-duration: 3.3s; }
+.tile.grass:nth-child(4n)::before { animation-delay: -1.4s; animation-duration: 2.4s; }
+.tile.grass:nth-child(5n)::before { animation-delay: -2s; animation-duration: 3.7s; }
+.grass-foreground { background-size: cover; animation: grass-wind 2.2s ease-in-out infinite alternate; }
+.tile.rustling::before, .tile.rustling .grass-foreground { animation: grass-rustle .16s steps(2) infinite; }
+@keyframes grass-wind { from { transform: skewX(-1.5deg) translateX(-1%); filter: brightness(.94); } to { transform: skewX(2deg) translateX(1%); filter: brightness(1.05); } }
+@keyframes grass-rustle { 0% { transform: translateX(-5%) rotate(-2deg); } 50% { transform: translateX(4%) rotate(2deg); } 100% { transform: translateX(-2%); } }
+
+/* Slower, opposing encounter entrances and less obstructive dialog */
+.trainer-battle-sprite { left: 4%; bottom: 12%; width: 28%; height: 41%; animation: trainer-from-right 1.25s .2s cubic-bezier(.18,.8,.28,1) both; }
+.pokemon-reveal > img { width: 31%; height: 31%; right: 9%; top: 25%; object-position: center; animation: pokemon-from-left 1.25s .2s cubic-bezier(.18,.8,.28,1) both; }
+.wild-copy { top: 6%; }
+.wild-copy h2 { font-size: clamp(.78rem, 1.7vw, 1.15rem); margin: 7px 0; }
+.wild-copy p { font-size: .5rem; }
+.battle-dialog { left: 7%; right: 7%; bottom: 2%; padding: 8px 12px; min-height: 58px; }
+.battle-dialog p { margin-bottom: 3px; font-size: .59rem; line-height: 1.5; }
+.battle-dialog button { padding: 5px 9px; font-size: .7rem; }
+@keyframes trainer-from-right { from { transform: translateX(180%) scale(.72); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes pokemon-from-left { from { transform: translateX(-230%) scale(.55); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (max-width: 650px) { .game-console { padding-left: 102px; } .controls-panel { width: 94px; padding: 14px 7px; } .side-title strong { font-size: .52rem; } .d-pad { grid-template-columns: repeat(3, 25px); } .d-pad button { width: 25px; height: 28px; } .map-frame { width: min(calc(100vw - 114px), calc(100dvh - 18px)); max-height: calc(100dvh - 18px); } }
+
+/* Emerald-inspired flashing serpentine encounter wipe */
+.encounter-transition { background: transparent; animation: none; }
+.encounter-transition > p { z-index: 4; animation: emerald-alert .62s steps(3) both; }
+.encounter-flashes { position: absolute; z-index: 3; inset: 0; background: white; opacity: 0; animation: emerald-flash .9s steps(1) forwards; }
+.snake-wipe { position: absolute; z-index: 5; inset: 0; display: grid; grid-template-rows: repeat(10, 1fr); overflow: hidden; }
+.snake-wipe span { display: block; width: 112%; height: 104%; background: #07100b; box-shadow: 0 1px 0 #07100b; transform: translateX(-110%); animation: snake-fill .56s cubic-bezier(.62,0,.9,.45) forwards; }
+.snake-wipe span:nth-child(even) { transform: translateX(110%); animation-name: snake-fill-reverse; }
+.snake-wipe span:nth-child(1), .snake-wipe span:nth-child(10) { animation-delay: .82s; }
+.snake-wipe span:nth-child(2), .snake-wipe span:nth-child(9) { animation-delay: .88s; }
+.snake-wipe span:nth-child(3), .snake-wipe span:nth-child(8) { animation-delay: .94s; }
+.snake-wipe span:nth-child(4), .snake-wipe span:nth-child(7) { animation-delay: 1s; }
+.snake-wipe span:nth-child(5), .snake-wipe span:nth-child(6) { animation-delay: 1.06s; }
+@keyframes emerald-flash { 0% { opacity: 0; } 12% { opacity: .9; } 24% { opacity: 0; } 38% { opacity: .75; } 50% { opacity: 0; } 66% { opacity: 1; } 78% { opacity: 0; } }
+@keyframes emerald-alert { 0% { transform: scale(0); opacity: 0; } 18% { transform: scale(1.35); opacity: 1; } 70% { transform: scale(1); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+@keyframes snake-fill { 0% { transform: translateX(-110%) skewX(-18deg); } 72% { transform: translateX(-10%) skewX(9deg); } 100% { transform: translateX(0); } }
+@keyframes snake-fill-reverse { 0% { transform: translateX(110%) skewX(18deg); } 72% { transform: translateX(10%) skewX(-9deg); } 100% { transform: translateX(0); } }
+
+/* Discrete leafy grass tiles on a bright meadow */
+.map { background: #72df9a; }
+.tile.ground, .tile.ground:nth-child(3n) { background-color: #72df9a; background-image: radial-gradient(circle at 16% 23%, #9bf0af 0 3%, transparent 4%), radial-gradient(circle at 72% 70%, #44c97a 0 2.5%, transparent 3.5%), radial-gradient(circle at 47% 46%, #86e9a4 0 2%, transparent 3%); box-shadow: none; }
+.tile.grass { overflow: visible; background: #72df9a; border: 0; }
+.tile.grass::before { inset: 2%; background-image: url('./assets/grass-clump.png'); background-size: contain; background-position: center; background-repeat: no-repeat; }
+.grass-foreground { left: 0; right: 0; bottom: -1%; height: 48%; background: url('./assets/grass-clump.png') center bottom / 96% auto no-repeat; clip-path: inset(47% 0 0); transform: scale(1.06); }
+
+/* A tightly packed forest edge using one uniformly sized tree */
+.tile.tree { background: #5caf63; overflow: visible; }
+.tree-top { width: 136%; height: auto; aspect-ratio: 5 / 6; max-width: none; background-size: 460% 300%; transform: translateY(-5%); filter: drop-shadow(0 3px 0 #173b2a55); }
+.tile.tree:nth-child(even) .tree-top, .tile.tree:nth-child(odd) .tree-top { width: 136%; height: auto; transform: translateY(-5%); }
+
+/* Encounters expand beyond the square exploration map */
+.battle-scene { position: fixed; z-index: 50; left: 148px; right: 16px; top: 5vh; bottom: 5vh; width: auto; height: auto; border: 6px solid #203c2c; border-radius: 10px; box-shadow: 0 0 0 4px #9bb368, 0 18px 50px #07110bc9; }
+@media (max-width: 650px) { .battle-scene { left: 106px; right: 8px; top: 9vh; bottom: 9vh; } }
+
+/* Final collision-era scene density and true widescreen battle framing */
+.tile.grass::before { inset: -16%; background-size: contain; }
+.grass-foreground { left: -14%; right: -14%; width: 128%; background-size: contain; }
+.tree-top, .tile.tree:nth-child(even) .tree-top, .tile.tree:nth-child(odd) .tree-top { width: 154%; height: auto; aspect-ratio: 5 / 6; transform: translateY(-8%); }
+.battle-scene { left: 148px; right: 14px; top: 50%; bottom: auto; width: auto; height: auto; max-height: 92dvh; aspect-ratio: 16 / 9; transform: translateY(-50%); overflow: hidden; }
+.name-level { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; }
+.name-level h2 { margin: 0; font-size: clamp(.72rem, 1.45vw, 1rem); }
+.name-level strong { white-space: nowrap; font: .62rem 'Press Start 2P'; }
+.wild-copy .type-row { justify-content: flex-start; margin-top: 7px; }
+.wild-copy .type-row span { padding: 3px 7px; font-size: .55rem; }
+.hp-row { display: grid; grid-template-columns: 26px minmax(110px, 18vw); align-items: center; gap: 5px; margin-top: 8px; }
+.hp-row b { color: #de754f; font: .55rem 'Press Start 2P'; }
+.hp-row > span { height: 10px; padding: 2px; border: 2px solid #365046; border-radius: 8px; background: #eef1d9; }
+.hp-row i { display: block; width: 100%; height: 100%; border-radius: 4px; background: linear-gradient(90deg, #42c963, #73df69); box-shadow: inset 0 -1px #279848; }
+.battle-dialog { min-height: 78px; padding: 12px 16px; }
+@media (max-width: 650px) { .battle-scene { left: 104px; right: 6px; top: 50%; bottom: auto; } .hp-row { grid-template-columns: 22px minmax(80px, 17vw); } }
+
+/* Two-option battle command panel */
+.battle-dialog { display: grid; grid-template-columns: minmax(0, 1fr) 210px; align-items: stretch; gap: 12px; min-height: 105px; padding: 10px 12px; }
+.battle-message { display: flex; flex-direction: column; justify-content: center; padding: 0 12px; border-right: 3px solid #718275; text-align: left; }
+.battle-message p { font-size: .68rem; }
+.battle-options { display: grid; grid-template-columns: 1fr; gap: 7px; }
+.battle-options button, .battle-dialog > button { float: none; margin: 0; border: 3px double #f8f2d8; outline: 2px solid #263e31; border-radius: 10px; color: white; font: .68rem 'Press Start 2P'; text-transform: uppercase; text-shadow: 2px 2px #243128; }
+.battle-options .bag-button { background: linear-gradient(#e8ae3f, #a75e16); }
+.battle-options .run-button { background: linear-gradient(#4aa9d7, #27669b); }
+.battle-dialog > button { align-self: center; padding: 12px; background: linear-gradient(#5ebc72, #337b4d); }
+
+/* Infinite Poké Ball capture animation */
+.catch-ball { position: absolute; z-index: 8; left: 20%; top: 58%; width: 38px; height: 38px; border: 4px solid #17271f; border-radius: 50%; overflow: hidden; background: linear-gradient(#db4547 0 43%, #17271f 44% 56%, #f8f3df 57%); filter: drop-shadow(0 5px 2px #1d39264f); }
+.catch-ball span { position: absolute; width: 10px; height: 10px; left: 50%; top: 50%; transform: translate(-50%,-50%); border: 3px solid #17271f; border-radius: 50%; background: white; }
+.catch-ball.throwing { animation: ball-throw .85s cubic-bezier(.2,.72,.45,1) forwards; }
+.catch-ball.shaking, .catch-ball.caught { left: 73%; top: 57%; }
+.catch-ball.shaking { animation: ball-shake .48s ease-in-out 4; }
+.catch-ball.caught { animation: caught-pop .45s both; }
+.pokemon-reveal > img.being-caught { animation: pokemon-capture .7s .18s forwards; }
+@keyframes ball-throw { 0% { left: 18%; top: 53%; transform: rotate(0) scale(.6); } 48% { left: 49%; top: 12%; transform: rotate(420deg) scale(1); } 100% { left: 73%; top: 57%; transform: rotate(760deg); } }
+@keyframes ball-shake { 0%,100% { transform: rotate(0); } 25% { transform: translateX(-7px) rotate(-20deg); } 75% { transform: translateX(7px) rotate(20deg); } }
+@keyframes caught-pop { 0%,45% { transform: scale(1); } 65% { transform: scale(1.3); filter: brightness(1.8); } 100% { transform: scale(1); } }
+@keyframes pokemon-capture { 0% { transform: none; opacity: 1; filter: brightness(1); } 45% { transform: scale(.55); filter: brightness(4); } 100% { transform: translate(-8%, 80%) scale(.05); opacity: 0; filter: brightness(5); } }
+
+/* E-key Pokédex */
+.menu-key { margin-top: 28px; padding: 9px 10px; border: 2px solid #e7e1c8; border-radius: 7px; background: #356649; color: #f2c94c; font: .65rem 'Press Start 2P'; cursor: pointer; box-shadow: 0 3px 0 #08160f; }
+.menu-key span { margin-left: 4px; color: white; font: .5rem 'Press Start 2P'; }
+.pokedex-overlay { position: fixed; z-index: 70; left: 148px; right: 14px; top: 4vh; bottom: 4vh; display: grid; grid-template-rows: auto auto 1fr auto; overflow: hidden; border: 6px solid #35443a; border-radius: 10px; background: #6f8061; box-shadow: 0 18px 60px #07110be0; color: #1e2b24; font-family: 'Press Start 2P'; }
+.pokedex-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #53605d; color: #fffbdc; font-size: .78rem; text-transform: uppercase; }
+.pokedex-header span { color: #e4c335; }
+.pokedex-header button { border: 0; background: transparent; color: white; font: .52rem 'Press Start 2P'; cursor: pointer; }
+.pokedex-tabs { display: flex; gap: 4px; padding: 7px 12px; background: #899783; }
+.pokedex-tabs button { padding: 8px 12px; border: 2px solid #46554a; background: #b9c3a4; font: .55rem 'Press Start 2P'; cursor: pointer; }
+.pokedex-tabs button.active { background: #ecf3c9; box-shadow: inset 0 -4px #e4bd35; }
+.dex-body { min-height: 0; display: grid; grid-template-columns: 33% 1fr; border-top: 3px solid #46554a; border-bottom: 3px solid #46554a; }
+.dex-preview { display: grid; place-content: center; justify-items: center; gap: 7px; padding: 18px; background: repeating-linear-gradient(0deg,#bcdce1 0 5px,#cbe8e9 6px 10px); border-right: 5px solid #46554a; text-transform: capitalize; }
+.dex-preview img { width: min(19vw, 210px); image-rendering: pixelated; }
+.dex-preview.unknown img { filter: grayscale(1) brightness(.2); opacity: .6; }
+.dex-preview strong { font-size: .7rem; }
+.dex-preview small { font-size: .55rem; }
+.dex-list { min-height: 0; overflow-y: auto; padding: 6px; background: #788769; }
+.dex-list > button { width: 100%; height: 48px; display: grid; grid-template-columns: 44px 54px 1fr; align-items: center; gap: 6px; border: 0; border-bottom: 2px solid #7c8971; background: #dce3be; text-align: left; font: .62rem 'Press Start 2P'; text-transform: capitalize; cursor: pointer; }
+.dex-list > button:nth-child(even) { background: #c6cdb2; }
+.dex-list > button.selected { outline: 4px solid #e7c73d; outline-offset: -4px; background: #eff8cd; }
+.dex-list img { width: 44px; height: 44px; object-fit: contain; image-rendering: pixelated; }
+.dex-list .unseen img { filter: grayscale(1) brightness(.15); opacity: .55; }
+.dex-list .unseen strong { color: #626b61; }
+.dex-footer { display: flex; justify-content: space-between; padding: 13px 18px; background: #53605d; color: white; font-size: .55rem; }
+.dex-loading { display: grid; place-items: center; color: white; }
+@media(max-width:650px){.pokedex-overlay{left:104px;right:6px}.dex-body{grid-template-columns:1fr}.dex-preview{display:none}.battle-dialog{grid-template-columns:1fr 130px}.pokedex-header{font-size:.55rem}}
+
+/* Fully opaque encounter layer and animated return to exploration */
+.battle-scene { left: 132px; right: 0; top: 0; bottom: 0; width: auto; height: 100dvh; max-height: none; aspect-ratio: auto; transform: none; border: 0; border-radius: 0; box-shadow: none; background-position: center; background-size: cover; }
+.battle-exit-wipe { position: absolute; z-index: 100; inset: 0; pointer-events: none; opacity: 0; background: #050b07; }
+.battle-scene.leaving .battle-exit-wipe { animation: battle-exit-wipe .9s steps(8) forwards; }
+.battle-scene.leaving .trainer-battle-sprite { animation: trainer-exit .42s ease-in forwards; }
+.battle-scene.leaving .pokemon-reveal > img { animation: pokemon-exit .42s ease-in forwards; }
+.battle-scene.leaving .battle-dialog { animation: dialog-exit .3s ease-in forwards; }
+@keyframes battle-exit-wipe { 0% { opacity: 0; clip-path: inset(50% 0 50%); background: white; } 18% { opacity: .8; clip-path: inset(0); background: white; } 32% { opacity: 0; clip-path: inset(0); } 42% { opacity: 1; clip-path: inset(48% 0 48%); background: #050b07; } 100% { opacity: 1; clip-path: inset(0); background: #050b07; } }
+@keyframes trainer-exit { to { transform: translateX(140%); opacity: 0; } }
+@keyframes pokemon-exit { to { transform: translateX(-160%); opacity: 0; } }
+@keyframes dialog-exit { to { transform: translateY(120%); opacity: 0; } }
+@media(max-width:650px){.battle-scene{left:94px;right:0;top:0;bottom:0;height:100dvh}}
+
+/* Quiet return to exploration: hold every sprite still and dissolve the scene. */
+.battle-scene.leaving { animation: battle-fade-to-map .9s ease-in-out forwards; }
+.battle-scene.leaving .battle-exit-wipe { display: none; animation: none; }
+.battle-scene.leaving .trainer-battle-sprite,
+.battle-scene.leaving .pokemon-reveal > img,
+.battle-scene.leaving .battle-dialog { animation: none; transform: none; }
+@keyframes battle-fade-to-map { 0% { opacity: 1; filter: brightness(1); } 35% { opacity: 1; filter: brightness(1.18); } 100% { opacity: 0; filter: brightness(1.35); } }
+
+/* Right-side controls and prominent upper-left game title */
+.game-console { padding: 6px 142px 6px 8px; }
+.controls-panel { left: auto; right: 0; width: 132px; padding: 20px 13px; border-right: 0; border-left: 2px solid #335743; }
+.control-group { margin: auto 0; }
+.map-title { position: absolute; z-index: 10; top: 14px; left: 18px; display: grid; gap: 5px; padding: 11px 15px 12px; border: 2px solid #b7cb83; border-radius: 8px; background: #102d20e8; color: white; box-shadow: 4px 4px 0 #071a117d; text-align: left; }
+.map-title span { color: #f2c94c; font-size: .65rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+.map-title strong { font: clamp(.72rem, 1.25vw, 1rem)/1.4 'Press Start 2P'; }
+.route-label { top: 17px; left: 50%; transform: translateX(-50%); }
+.battle-scene { left: 0; right: 132px; }
+.pokedex-overlay { left: 10px; right: 142px; }
+@media(max-width:650px){.game-console{padding-left:6px;padding-right:102px}.controls-panel{left:auto;right:0;width:94px}.map-frame{width:min(calc(100vw - 114px),calc(100dvh - 18px))}.battle-scene{left:0;right:94px}.pokedex-overlay{left:6px;right:102px}.map-title{top:9px;left:10px;padding:7px 9px}.map-title strong{font-size:.58rem}.map-title span{font-size:.48rem}}
+
+/* Match the encounter's official artwork throughout the Pokédex. */
+.dex-body { grid-template-columns: 42% 58%; }
+.dex-list img { image-rendering: auto; filter: drop-shadow(0 3px 3px #26382c55); }
+.dex-list .unseen img { filter: grayscale(1) brightness(.15); }
+.dex-preview { padding: 12px; }
+.dex-preview img { width: min(34vw, 390px); min-width: min(34vw, 390px); height: min(34vw, 390px); min-height: min(34vw, 390px); image-rendering: auto; filter: drop-shadow(0 10px 8px #2e443654); }
+.dex-preview.unknown img { filter: grayscale(1) brightness(.18); }
+@media(max-width:820px){.dex-body{grid-template-columns:38% 62%}.dex-preview img{width:min(31vw,300px);min-width:min(31vw,300px);height:min(31vw,300px);min-height:min(31vw,300px)}}
+
+/* Prominent floating controls in the bottom-right corner */
+.game-console { padding: 6px; }
+.controls-panel { left: auto; right: 18px; top: auto; bottom: 18px; width: 220px; height: auto; padding: 18px 20px 20px; border: 3px solid #b7cb83; border-radius: 12px; background: #102d20ed; box-shadow: 6px 6px 0 #071a118f; }
+.control-group { margin: 0; }
+.control-group > p { margin-bottom: 17px; font-size: .72rem; }
+.control-group > small { margin-top: 15px; color: #dce8db; font-size: .68rem; }
+.d-pad { grid-template-columns: repeat(3, 48px); gap: 7px; }
+.d-pad button { width: 48px; height: 48px; border: 3px solid #f8efce; border-radius: 9px; font-size: .72rem; box-shadow: 0 5px 0 #071a11; }
+.menu-key { width: 100%; margin-top: 20px; padding: 13px 10px; border-width: 3px; font-size: .72rem; }
+.menu-key span { font-size: .62rem; }
+.map-frame { width: min(calc(100vw - 20px), calc(100dvh - 20px)); max-height: calc(100dvh - 20px); }
+.battle-scene { left: 0; right: 0; }
+.pokedex-overlay { left: 10px; right: 10px; }
+@media(max-width:650px){.game-console{padding:4px}.controls-panel{left:auto;right:10px;bottom:10px;width:162px;padding:12px}.d-pad{grid-template-columns:repeat(3,36px);gap:5px}.d-pad button{width:36px;height:36px}.control-group>small{display:none}.menu-key{margin-top:13px;padding:9px}.map-frame{width:min(calc(100vw - 12px),calc(100dvh - 12px));max-height:calc(100dvh - 12px)}.battle-scene{left:0;right:0}.pokedex-overlay{left:6px;right:6px}}
+
+/* Animated encounter menus and consistent action sizing */
+.battle-options, .bag-options, .battle-dialog > button { animation: option-puff .3s cubic-bezier(.2,1.35,.45,1) both; }
+.battle-options button, .bag-options button, .battle-dialog > button { transition: transform .16s ease, box-shadow .16s ease, filter .16s ease; }
+.battle-options button:hover, .bag-options button:hover, .battle-dialog > button:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 7px 0 #18291f, 0 11px 18px #10201866; filter: brightness(1.08); }
+.battle-options button:active, .bag-options button:active, .battle-dialog > button:active { transform: translateY(2px) scale(.99); box-shadow: 0 2px 0 #18291f; }
+.battle-dialog > button { align-self: stretch; width: 100%; height: 100%; min-height: 0; padding: 0 18px; }
+@keyframes option-puff { 0% { opacity: 0; transform: scale(.72); filter: blur(3px); } 65% { opacity: 1; transform: scale(1.06); filter: blur(0); } 100% { opacity: 1; transform: scale(1); } }
+
+/* Compact animated Pokédex panel and interactive artwork */
+.pokedex-overlay { left: 50%; right: auto; top: 6vh; bottom: 6vh; width: min(880px, calc(100vw - 36px)); transform: translateX(-50%); animation: pokedex-puff .34s cubic-bezier(.18,1.25,.4,1) both; }
+.dex-list img, .dex-preview img { transition: transform .2s ease, filter .2s ease; }
+.dex-list > button:hover img { transform: translateY(-4px) scale(1.08); filter: drop-shadow(0 8px 5px #1d312477); }
+.dex-preview img:hover { transform: translateY(-7px) scale(1.045); filter: drop-shadow(0 16px 10px #1d312487); }
+.dex-list .unseen:hover img, .dex-preview.unknown img:hover { filter: grayscale(1) brightness(.2) drop-shadow(0 8px 5px #1d312477); }
+@keyframes pokedex-puff { 0% { opacity: 0; transform: translateX(-50%) scale(.68); filter: blur(5px); } 68% { opacity: 1; transform: translateX(-50%) scale(1.035); filter: blur(0); } 100% { opacity: 1; transform: translateX(-50%) scale(1); } }
+
+/* Reset grass to contiguous image-backed square tiles. */
+.tile.grass { overflow: hidden; background: #4d9450; border: 1px solid #3d7e43; }
+.tile.grass::before { inset: 0; background-image: url('./assets/grass-clump.png'); background-size: 88% 88%; background-position: center; background-repeat: no-repeat; filter: brightness(.72) saturate(.9); animation: grass-wind 2.8s ease-in-out infinite alternate; }
+.tile.grass:nth-child(3n)::before, .tile.grass:nth-child(4n)::before, .tile.grass:nth-child(5n)::before { background-size: 88% 88%; filter: brightness(.72) saturate(.9); }
+.grass-foreground { left: 0; right: 0; top: 50%; width: 100%; height: 50%; background-image: url('./assets/grass-clump.png'); background-size: 88% 176%; background-position: center bottom; background-repeat: no-repeat; clip-path: inset(35% 0 0); filter: brightness(.68) saturate(.92); }
+@media(max-width:650px){.pokedex-overlay{left:50%;right:auto;width:calc(100vw - 18px);top:4vh;bottom:4vh}}
+
+/* Trainer platform alignment and classic opponent status panel */
+.trainer-battle-sprite { left: 8%; }
+.wild-copy { left: 4%; top: 5%; min-width: min(390px, 39vw); padding: 13px 38px 13px 48px; border: 4px solid #526056; border-radius: 4px; background: linear-gradient(#f7f4dc, #e5e4cb); box-shadow: 7px 8px 0 #63746a; clip-path: polygon(0 0, 91% 0, 100% 24%, 100% 100%, 8% 100%, 0 76%); color: #3c403d; }
+.wild-copy::before { content: ''; position: absolute; left: 15px; bottom: 17px; width: 19px; height: 19px; border: 3px solid #29372e; border-radius: 50%; background: linear-gradient(#d94b45 0 43%, #29372e 44% 56%, #f8f1d8 57%); }
+.name-level { justify-content: flex-start; gap: 9px; }
+.name-level h2 { flex: 1; font-size: clamp(.84rem, 1.55vw, 1.15rem); color: #3d403e; }
+.name-level strong { font-size: clamp(.55rem, .9vw, .72rem); color: #404440; }
+.gender { font: 1.25rem/1 'DM Sans'; font-style: normal; font-weight: 700; }
+.gender.female { color: #ef5847; }
+.gender.male { color: #348ad0; }
+.gender.genderless { color: #777f79; font-size: .8rem; }
+.wild-copy .type-row { margin-left: 0; }
+.hp-row { grid-template-columns: 34px minmax(140px, 20vw); margin-left: 25px; }
+.hp-row b { color: #dd9221; font-size: .63rem; }
+@media(max-width:650px){.trainer-battle-sprite{left:6%}.wild-copy{min-width:44vw;padding:9px 20px 9px 35px}.wild-copy::before{left:10px;bottom:13px;width:14px;height:14px}.hp-row{grid-template-columns:25px minmax(75px,16vw);margin-left:15px}}
+
+/* Tighter, darker grass rows and corrected player registration */
+.tile.grass::before { inset: -8% -8%; background-size: contain; filter: brightness(.78) saturate(.92); }
+.tile.grass:nth-child(3n)::before, .tile.grass:nth-child(4n)::before, .tile.grass:nth-child(5n)::before { filter: brightness(.78) saturate(.92); }
+.grass-foreground { left: -7%; right: -7%; width: 114%; height: 48%; filter: brightness(.74) saturate(.95); }
+.player { transform: translate(calc(var(--player-x) * 100%), calc(var(--player-y) * 100% - 7%)) scale(1.15); }
+
+/* Bag inventory, trainer throw, centered shake, breakout, and catch celebration */
+.battle-message p { font-size: clamp(.72rem, 1.2vw, .92rem); line-height: 1.55; }
+.battle-message small { font-size: clamp(.48rem, .75vw, .62rem); }
+.bag-options { display: grid; gap: 7px; }
+.bag-options button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; border: 3px double #f8f2d8; outline: 2px solid #263e31; border-radius: 9px; background: linear-gradient(#e8ae3f,#a75e16); color: white; font: .55rem 'Press Start 2P'; text-shadow: 1px 1px #263e31; cursor: pointer; }
+.bag-options button:last-child { background: linear-gradient(#939d92,#5d685f); }
+.bag-options b { color: #fff3a1; }
+.mini-ball { width: 19px; height: 19px; border: 2px solid #17271f; border-radius: 50%; background: linear-gradient(#db4547 0 43%,#17271f 44% 56%,#f8f3df 57%); }
+.trainer-battle-sprite.trainer-throwing { animation: trainer-throw .85s cubic-bezier(.2,.8,.3,1) forwards; transform-origin: 65% 90%; }
+.catch-ball.shaking, .catch-ball.caught { left: calc(76% - 19px); top: calc(46% - 19px); }
+@keyframes trainer-throw { 0% { transform: none; } 24% { transform: translateX(7%) rotate(5deg); } 52% { transform: translateX(13%) translateY(-3%) rotate(10deg) scale(1.04); } 100% { transform: none; } }
+.catch-stars { position: absolute; z-index: 12; left: calc(76% - 65px); top: calc(46% - 55px); width: 130px; height: 110px; pointer-events: none; }
+.catch-stars i { position: absolute; color: #ffe65a; font-style: normal; font-size: 22px; text-shadow: 0 0 5px white; animation: catch-spark .75s ease-out both; }
+.catch-stars i:nth-child(1){left:8%;top:45%;animation-delay:.02s}.catch-stars i:nth-child(2){left:28%;top:2%;animation-delay:.11s}.catch-stars i:nth-child(3){right:15%;top:18%;animation-delay:.2s}.catch-stars i:nth-child(4){right:0;top:56%;animation-delay:.28s}.catch-stars i:nth-child(5){left:44%;bottom:0;animation-delay:.35s}
+@keyframes catch-spark { 0% { opacity:0; transform:scale(0) rotate(0); } 45% { opacity:1; transform:scale(1.35) rotate(90deg); } 100% { opacity:0; transform:scale(.5) rotate(180deg); } }
+@keyframes ball-throw { 0% { left: 18%; top: 53%; transform: rotate(0) scale(.6); } 45% { left: 49%; top: 12%; transform: rotate(400deg) scale(1); } 68% { left: calc(76% - 19px); top: calc(38% - 19px); transform: rotate(590deg); } 78% { left: calc(76% - 19px); top: calc(38% - 19px); transform: rotate(620deg); } 100% { left: calc(76% - 19px); top: calc(46% - 19px); transform: rotate(760deg); } }
+
+/* Larger separated Rolodex-style Pokédex entries */
+.dex-list { padding: 28px 14px; scroll-padding-block: 42%; background: linear-gradient(90deg, #667769, #7f8d72); mask-image: linear-gradient(to bottom, transparent 0, black 9%, black 91%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 9%, black 91%, transparent 100%); }
+.dex-list > button { position: relative; width: calc(100% - 14px); height: 70px; margin: 0 7px 10px; padding: 4px 18px 4px 8px; grid-template-columns: 66px 66px minmax(0, 1fr); gap: 9px; overflow: hidden; border: 3px solid #63705d; border-radius: 34px 9px 9px 34px; background: linear-gradient(90deg, #e7e9ca 0 72%, #d3dab9); box-shadow: 0 4px 0 #465248, inset 0 2px #f9f8df; transition: transform .16s ease, filter .16s ease; }
+.dex-list > button:nth-child(even) { background: linear-gradient(90deg, #d8ddbd 0 72%, #c5cdb0); }
+.dex-list > button:hover { transform: translateX(-5px); filter: brightness(1.06); }
+.dex-list > button::after { content: ''; position: absolute; right: -7px; top: 50%; width: 15px; height: 28px; transform: translateY(-50%); border-radius: 8px 0 0 8px; background: #667769; }
+.dex-list > button.selected { transform: translateX(-9px) scale(1.015); outline: 4px solid #e7c73d; outline-offset: -4px; background: linear-gradient(90deg, #f5f7d4, #e5edc4); box-shadow: 7px 5px 0 #3f4b42; }
+.dex-list > button.selected::before { content: '▶'; position: absolute; right: 12px; color: #d93b35; font-size: .8rem; }
+.dex-list img { width: 66px; height: 66px; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 3px 0 #41504444); }
+.dex-list .unseen img { filter: grayscale(1) brightness(.15); opacity: .48; }
+.dex-list > button span { font-size: .68rem; }
+.dex-list > button strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(.58rem, 1vw, .78rem); }
+.dex-preview img { width: min(23vw, 260px); }
+
+/* Fill vertical sprite rows and register the player's feet to tile center */
+.tree-fill { position: absolute; z-index: 3; left: 50%; top: 50%; width: 154%; height: auto; aspect-ratio: 5 / 6; transform: translateX(-50%); background: url('./assets/tree-sprites.png') left top / 460% 300% no-repeat; image-rendering: pixelated; filter: drop-shadow(0 3px 0 #173b2a55); pointer-events: none; }
+.grass-fill { position: absolute; z-index: 2; left: 50%; top: 48%; width: 84%; aspect-ratio: 1; transform: translateX(-50%); background: url('./assets/grass-clump.png') center / contain no-repeat; image-rendering: pixelated; filter: brightness(.78) saturate(.92); transform-origin: center bottom; animation: grass-wind 3s ease-in-out infinite alternate; pointer-events: none; }
+.tile.grass:nth-child(odd) .grass-fill { animation-delay: -1.2s; }
+.player { transform: translate(calc(var(--player-x) * 100%), calc(var(--player-y) * 100% - 50%)) scale(1.15); }
+.grass-foreground { top: 48%; bottom: auto; height: 52%; clip-path: inset(38% 0 0); }
+
+/* Corrected depth: no filler sprites; lower trees overlap upward only */
+.tree-fill, .grass-fill { display: none; }
+.tile.tree { z-index: 2; }
+.tree-top, .tile.tree:nth-child(even) .tree-top, .tile.tree:nth-child(odd) .tree-top { position: absolute; left: 50%; bottom: 0; width: 138%; height: auto; aspect-ratio: 5 / 6; transform: translateX(-50%) translateY(0); transform-origin: center bottom; }
+.tile.grass::before { inset: -5%; transform-origin: center bottom; }
+.grass-foreground { left: -4%; right: -4%; width: 108%; }
+
+/* Stable command panel with horizontal choices */
+.battle-dialog { height: 112px; min-height: 112px; max-height: 112px; grid-template-columns: minmax(0,1fr) 260px; }
+.battle-message { min-width: 0; }
+.battle-options, .bag-options { grid-template-columns: 1fr 1fr; align-items: stretch; }
+.battle-options button, .bag-options button { min-width: 0; height: 100%; }
+
+/* Slower entrances; cry begins during the entrance instead of after it */
+.trainer-battle-sprite { animation-duration: 1.65s; }
+.pokemon-reveal > img { animation-duration: 1.65s; }
+@media(max-width:650px){.battle-dialog{grid-template-columns:minmax(0,1fr) 190px}.battle-message p{font-size:.62rem}.battle-options,.bag-options{gap:4px}.battle-options button,.bag-options button{font-size:.46rem}}
+
+/* Short interlocking grass rows, replacing the radial clump artwork */
+.tile.grass::before { inset: 0; background-image: url('./assets/grass-row.png'); background-size: 152% auto; background-position: center bottom; background-repeat: no-repeat; filter: brightness(.78) saturate(.92); }
+.grass-foreground { left: -3%; right: -3%; top: 48%; width: 106%; height: 52%; background-image: url('./assets/grass-row.png'); background-size: 152% auto; background-position: center bottom; background-repeat: no-repeat; clip-path: inset(46% 0 0); }
+
+/* Curved Rolodex wheel with normalized sprite canvases */
+.dex-list > button { transform-origin: center; margin-inline: auto; }
+.dex-list > button.depth-0 { width: 100%; opacity: 1; }
+.dex-list > button.depth-1 { width: 95%; opacity: .94; }
+.dex-list > button.depth-2 { width: 88%; opacity: .82; }
+.dex-list > button.depth-3 { width: 79%; opacity: .66; }
+.dex-list > button.depth-4 { width: 70%; opacity: .48; }
+.dex-list > button.depth-1:nth-child(odd), .dex-list > button.depth-3:nth-child(odd) { transform: translateX(-2%); }
+.dex-list > button.depth-1:nth-child(even), .dex-list > button.depth-3:nth-child(even) { transform: translateX(2%); }
+.dex-list > button.selected { transform: translateX(-8px) scale(1.015); opacity: 1; }
+.dex-list img { width: 64px; min-width: 64px; height: 64px; min-height: 64px; object-fit: contain; object-position: center; }
+.dex-preview img { width: 190px; min-width: 190px; height: 190px; min-height: 190px; object-fit: contain; object-position: center; }
+
+/* Remove the grass asset's built-in transparent headroom so rows touch. */
+.tile.grass { overflow: visible; background: #72df9a; }
+.tile.grass::before { inset: -3% -5%; background-image: url('./assets/grass-row.png'); background-size: auto 255%; background-position: center bottom; background-repeat: no-repeat; filter: brightness(.76) saturate(.9); transform-origin: center bottom; }
+.tile.grass:nth-child(3n)::before, .tile.grass:nth-child(4n)::before, .tile.grass:nth-child(5n)::before { background-size: auto 255%; filter: brightness(.76) saturate(.9); }
+.grass-foreground { left: -5%; right: -5%; top: 46%; width: 110%; height: 55%; background-image: url('./assets/grass-row.png'); background-size: auto 255%; background-position: center bottom; background-repeat: no-repeat; clip-path: inset(43% 0 0); filter: brightness(.72) saturate(.92); }
+
+/* Wider battle controls, proportional Pokémon sizes, and elemental type colors */
+.battle-dialog { grid-template-columns: minmax(0, 1fr) minmax(340px, 38%); }
+.battle-options, .bag-options { gap: 12px; }
+.battle-options button, .bag-options button { padding-inline: 18px; }
+.mini-ball { flex: 0 0 24px; width: 24px; height: 24px; }
+.pokemon-reveal > img { max-width: 47%; max-height: 47%; object-fit: contain; }
+.wild-copy .type-row span { color: white; text-shadow: 1px 1px #17271f99; border: 1px solid #ffffff55; }
+.wild-copy .type-normal{background:#92916f}.wild-copy .type-fire{background:#e85d38}.wild-copy .type-water{background:#3f83cf}.wild-copy .type-electric{background:#d5a91c}.wild-copy .type-grass{background:#4c9b45}.wild-copy .type-ice{background:#4fa7ad}.wild-copy .type-fighting{background:#b74437}.wild-copy .type-poison{background:#99549b}.wild-copy .type-ground{background:#b7833e}.wild-copy .type-flying{background:#718fc4}.wild-copy .type-psychic{background:#d95279}.wild-copy .type-bug{background:#829126}.wild-copy .type-rock{background:#9b873f}.wild-copy .type-ghost{background:#65568a}.wild-copy .type-dragon{background:#6450af}.wild-copy .type-dark{background:#5a4b43}.wild-copy .type-steel{background:#6f8d99}.wild-copy .type-fairy{background:#d875a1}
+@media(max-width:760px){.battle-dialog{grid-template-columns:minmax(0,1fr) minmax(230px,42%)}.battle-options,.bag-options{gap:6px}}
+
+/* Capture target correction: absorb in place, then let the ball fall. */
+.pokemon-reveal > img.being-caught { animation: pokemon-capture-centered .42s .54s forwards; transform-origin: center; }
+@keyframes pokemon-capture-centered { 0% { transform: scale(1); opacity: 1; filter: brightness(1); } 38% { transform: scale(.72); filter: brightness(3); } 100% { transform: scale(.03); opacity: 0; filter: brightness(6); } }
+
+/* Entrance animations run once; temporary actions always return to a fixed pose. */
+.trainer-battle-sprite.settled, .pokemon-reveal > img.settled { animation: none; }
+.trainer-battle-sprite.settled.trainer-throwing { animation: trainer-throw-corrected .82s ease-in-out both; }
+.pokemon-reveal > img.settled.being-caught { animation: pokemon-capture-centered .42s .54s forwards; }
+@keyframes trainer-throw-corrected { 0% { transform: none; } 16% { transform: translateX(-3%) rotate(-5deg); } 36% { transform: translateX(10%) translateY(-2%) rotate(8deg); } 55% { transform: translateX(2%) rotate(1deg); } 72%,100% { transform: none; } }
+@keyframes ball-throw { 0% { left: 25%; top: 48%; transform: rotate(0) scale(.58); } 18% { left: 29%; top: 40%; transform: rotate(120deg) scale(.8); } 45% { left: 50%; top: 13%; transform: rotate(390deg) scale(1); } 68% { left: calc(76% - 19px); top: calc(38% - 19px); transform: rotate(590deg); } 78% { left: calc(76% - 19px); top: calc(38% - 19px); transform: rotate(620deg); } 100% { left: calc(76% - 19px); top: calc(46% - 19px); transform: rotate(760deg); } }
+
+/* Live curved-wheel motion while scrolling and a larger detail preview. */
+.dex-list > button { transition: width .2s ease, transform .2s ease, opacity .2s ease, filter .16s ease; }
+.dex-preview img { width: min(27vw, 290px); min-width: min(27vw, 290px); height: min(27vw, 290px); min-height: min(27vw, 290px); }
+
+/* The player lives on a map-wide layer and glides between tile coordinates. */
+.map { position: relative; }
+.player { inset: auto; left: 0; top: 0; width: calc(100% / 15); height: calc(100% / 15); transform: translate(calc(var(--player-x) * 100%), calc(var(--player-y) * 100%)) scale(1.28); transform-origin: center bottom; transition: transform 180ms linear; will-change: transform; }
+.player.walking { animation: sprite-walk 360ms steps(3) infinite; }
+
+/* In-game sound control and intermittent forest rain */
+.sound-key {
+  width: 100%;
+  margin-top: 10px;
+  padding: 11px 8px;
+  border: 3px solid #a6d5a2;
+  border-radius: 9px;
+  background: #1d5039;
+  color: #f0fff0;
+  box-shadow: 0 4px 0 #102f23;
+  font: .58rem 'Press Start 2P', monospace;
+  cursor: pointer;
+  transition: transform .14s ease, box-shadow .14s ease, filter .14s ease;
+}
+.sound-key:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #102f23; filter: brightness(1.12); }
+.sound-key:active { transform: translateY(2px); box-shadow: 0 2px 0 #102f23; }
+.rain-layer {
+  position: absolute;
+  z-index: 9;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(#173c5540, #2e5f754d);
+  animation: rain-arrive .8s ease both;
+}
+.rain-layer::before,
+.rain-layer::after {
+  content: '';
+  position: absolute;
+  inset: -35%;
+  background: repeating-linear-gradient(105deg, transparent 0 18px, #d9f2ffbb 19px 21px, transparent 22px 38px);
+  animation: rain-fall .48s linear infinite;
+}
+.rain-layer::after { opacity: .45; animation-duration: .72s; background-size: 70% 70%; }
+.rain-layer span {
+  position: absolute;
+  z-index: 1;
+  right: 12px;
+  top: 12px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: #163b31cc;
+  color: #e8f8ff;
+  font: .48rem 'Press Start 2P', monospace;
+  letter-spacing: .04em;
+}
+@keyframes rain-fall {
+  from { transform: translate3d(-5%, -18%, 0); }
+  to { transform: translate3d(8%, 18%, 0); }
+}
+@keyframes rain-arrive { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .rain-layer::before, .rain-layer::after { animation-duration: 1.2s; }
+}
+
+/* Crop the transparent padding out of the grass artwork and fill each tile. */
+.tile.grass {
+  overflow: hidden;
+  background: #438d4b;
+  border: 0;
+}
+.tile.grass::before,
+.tile.grass:nth-child(3n)::before,
+.tile.grass:nth-child(4n)::before,
+.tile.grass:nth-child(5n)::before {
+  inset: -3%;
+  background-image: url('./assets/grass-row.png');
+  background-size: auto 410%;
+  background-position: center 79%;
+  background-repeat: no-repeat;
+  filter: brightness(.74) saturate(.95);
+}
+.grass-foreground {
+  left: -3%;
+  right: -3%;
+  top: 49%;
+  width: 106%;
+  height: 54%;
+  background-image: url('./assets/grass-row.png');
+  background-size: auto 410%;
+  background-position: center 79%;
+  background-repeat: no-repeat;
+  clip-path: inset(38% 0 0);
+  filter: brightness(.7) saturate(.98);
+}
+
+/* Give the Pokédex a readable open and close puff instead of instant removal. */
+.pokedex-overlay {
+  animation: pokedex-puff .62s cubic-bezier(.18, 1.16, .4, 1) both;
+}
+.pokedex-overlay.is-closing {
+  pointer-events: none;
+  animation: pokedex-dismiss .62s cubic-bezier(.55, 0, .8, .45) both;
+}
+@keyframes pokedex-dismiss {
+  0% { opacity: 1; transform: translateX(-50%) scale(1); filter: blur(0); }
+  30% { opacity: 1; transform: translateX(-50%) scale(1.025); filter: blur(0); }
+  100% { opacity: 0; transform: translateX(-50%) scale(.72); filter: blur(5px); }
+}
+
+/* Final grass treatment: use the seamless artwork as a full-square texture. */
+.tile.grass {
+  overflow: hidden;
+  background: #286d3b url('./assets/tall-grass.png') center / cover no-repeat;
+}
+.tile.grass::before,
+.tile.grass:nth-child(3n)::before,
+.tile.grass:nth-child(4n)::before,
+.tile.grass:nth-child(5n)::before {
+  inset: 0;
+  background-image: url('./assets/tall-grass.png');
+  background-position: center;
+  background-size: cover;
+  opacity: .94;
+  filter: brightness(.76) saturate(.9);
+}
+.grass-foreground {
+  left: 0;
+  right: 0;
+  top: 48%;
+  width: 100%;
+  height: 52%;
+  background: url('./assets/tall-grass.png') center bottom / 200% 200% no-repeat;
+  clip-path: inset(40% 0 0);
+  filter: brightness(.68) saturate(.95);
+}
+
+/* A lighter, sparse shower that leaves the map readable. */
+.rain-layer { background: #183b4a12; animation-duration: 1.4s; }
+.rain-layer::before,
+.rain-layer::after {
+  inset: -25%;
+  opacity: .35;
+  background: repeating-linear-gradient(105deg, transparent 0 43px, #e4f6ff 44px 45px, transparent 46px 82px);
+  animation-duration: .9s;
+}
+.rain-layer::after { opacity: .18; animation-duration: 1.25s; background-size: 73% 73%; }
+
+/* Keep a centered curve from the moment the Pokédex opens. */
+.dex-list { padding-block: calc(50% - 35px); }
+.dex-list .unseen img,
+.dex-list .unseen:hover img,
+.dex-preview.unknown img,
+.dex-preview.unknown img:hover {
+  opacity: .82;
+  filter: grayscale(1) brightness(.06) contrast(1.35) drop-shadow(0 3px 2px #17241d55);
+}
+.pokedex-header { padding: 16px 20px; font-size: .92rem; }
+.pokedex-header button {
+  padding: 10px 12px;
+  border: 2px solid #f1efd8;
+  border-radius: 7px;
+  background: #344941;
+  font-size: .67rem;
+}
+.pokedex-tabs { gap: 8px; padding: 10px 14px; }
+.pokedex-tabs button { padding: 11px 16px; font-size: .66rem; }
+.dex-list > button span { font-size: .76rem; }
+.dex-list > button strong { font-size: clamp(.68rem, 1.1vw, .86rem); }
+.dex-preview strong { font-size: .82rem; }
+.dex-preview small, .dex-footer { font-size: .64rem; }
+
+/* Individual pixel-art grass squares, enlarged enough to meet without seams. */
+.tile.grass {
+  overflow: hidden;
+  background: #4b9b58;
+}
+.tile.grass::before,
+.tile.grass:nth-child(3n)::before,
+.tile.grass:nth-child(4n)::before,
+.tile.grass:nth-child(5n)::before {
+  inset: -14%;
+  background-image: url('./assets/grass-clump.png');
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 1;
+  filter: brightness(.7) saturate(.92);
+}
+.grass-foreground {
+  left: -12%;
+  right: -12%;
+  top: 44%;
+  width: 124%;
+  height: 60%;
+  background: url('./assets/grass-clump.png') center / contain no-repeat;
+  clip-path: inset(40% 0 0);
+  filter: brightness(.66) saturate(.96);
+}
